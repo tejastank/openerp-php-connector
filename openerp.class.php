@@ -40,12 +40,16 @@ class OpenERP {
         $msg->addParam(new xmlrpcval($this->passwrod, "string"));
 
         $resp = $sock->send($msg);
-        $val = $resp->value();
-        $id = $val->scalarval();
-
-        if ($id > 0) {
-            $this->uid = $id;
-            return $id; //* userid of succesful login person *//
+        if($resp->errno > 0 ){
+            print "Error : ". $resp->errstr;
+            return -1;
+        }
+        print_r($resp->value()->me['int']);
+        //$val = $resp->value();
+        //$id = $val->scalarval();
+        $this->uid = $resp->value()->me['int'];
+        if ( $resp->value()->me['int'] ) {
+            return $resp->value()->me['int']; //* userid of succesful login person *//
         } else {
             return -1; //** if userid not exists , username or password wrong.. */
         }
@@ -113,8 +117,6 @@ class OpenERP {
         foreach ($fields as $field)
             $fields_val[$count++] = new xmlrpcval($field, "string");
 
-
-
         $msg = new xmlrpcmsg('execute');
         $msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
         $msg->addParam(new xmlrpcval($this->uid, "int")); /* useid */
@@ -123,7 +125,10 @@ class OpenERP {
         $msg->addParam(new xmlrpcval("read", "string"));/** method which u like to execute */
         $msg->addParam(new xmlrpcval($id_val, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
         $msg->addParam(new xmlrpcval($fields_val, "array"));/** parameters of the methods with values....  */
+//        print_r($msg);
         $resp = $client->send($msg);
+
+//        print_r($resp);
 
         if ($resp->faultCode())
             return -1;  /* if the record is not writable or not existing the ids or not having permissions  */
