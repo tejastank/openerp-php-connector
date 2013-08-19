@@ -2,13 +2,11 @@ openerp-php-connector
 =====================
 
 XMLRPC Connecotor communicate with OpenERP Server 6 and 7 version both.
-
--- One of tested and well worked PHP Connector.
+One of tested and well worked PHP Connector. AGPL V3
 
 
 Example
 =======
-
 
 $instance = new OpenERP();
 
@@ -25,7 +23,10 @@ print_r($partners);
 
 Powered By SnippetBucket.com
 ============================
-Tejas Tank
+Tejas Tank.
+
 Email: tejas.tank.mca@gmail.com
+
 website: http://www.snippetbucket.com/
+
 
