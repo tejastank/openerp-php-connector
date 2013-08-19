@@ -6,7 +6,9 @@ print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 $rpc = new OpenERP();
 
-$x = $rpc->login("demo", "demo", "demo", "http://demo.snippetbucket.com/xmlrpc/");
+// $x = $rpc->login("admin", "admin", "db6edi", "http://localhost:8069/xmlrpc/");
+
+$x = $rpc->login("admin", "admin", "upfdata", "http://199.195.192.3:8000/xmlrpc/");
 
 print_r($x);
 echo "<textarea>user id : ", $x. "</textarea>";
@@ -15,8 +17,8 @@ $fields = array(
     //'id','name','model'
 );
 
-$ids = range(1,20);
-$partners = $rpc->read($ids, $fields, "vehicle.model.brand");
+$ids = range(1,2);
+$partners = $rpc->read($ids, $fields, "res.partner");
 
 print_r($partners);
 /////print $partners = $x->unlink(array(19), "res.partner");

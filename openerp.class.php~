@@ -44,7 +44,7 @@ class OpenERP {
             print "Error : ". $resp->errstr;
             return -1;
         }
-        print_r($resp->value()->me['int']);
+        print_r($resp);
         //$val = $resp->value();
         //$id = $val->scalarval();
         $this->uid = $resp->value()->me['int'];
@@ -128,7 +128,7 @@ class OpenERP {
 //        print_r($msg);
         $resp = $client->send($msg);
 
-        print_r($resp);
+//        print_r($resp);
 
         if ($resp->faultCode())
             return -1;  /* if the record is not writable or not existing the ids or not having permissions  */
