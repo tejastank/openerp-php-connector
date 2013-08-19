@@ -44,7 +44,7 @@ class OpenERP {
             print "Error : ". $resp->errstr;
             return -1;
         }
-        print_r($resp);
+        print_r($resp->value()->me['int']);
         //$val = $resp->value();
         //$id = $val->scalarval();
         $this->uid = $resp->value()->me['int'];
