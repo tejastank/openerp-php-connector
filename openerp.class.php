@@ -26,14 +26,22 @@ class OpenERP {
     public $uid = "";/**  @uid = once user succesful login then this will asign the user id */
     public $username = ""; /*     * * @userid = general name of user which require to login at openerp server */
     public $passwrod = "";/** @password = password require to login at openerp server * */
+    public $certificate = FALSE;
+    public $verify_host = 2;
 
-    public function login($username = "admin", $password="a", $database="test", $server="http://localhost:8069/xmlrpc/") {
+    public function login($username = "admin", $password="a", $database="test", $server="http://localhost:8069/xmlrpc/", $certificate=FALSE, $verify_host=2) {
         $this->server = $server;
         $this->database = $database;
         $this->username = $username;
         $this->passwrod = $password;
+        $this->certificate = $certificate;
+        $this->verify_host = $verify_host;
 
         $sock = new xmlrpc_client($this->server . 'common');
+        if($this->certificate){
+        	$sock->setSSLVerifyHost($this->verify_host);
+        	$sock->setCaCertificate($this->certificate);
+        }
         $msg = new xmlrpcmsg('login');
         $msg->addParam(new xmlrpcval($this->database, "string"));
         $msg->addParam(new xmlrpcval($this->username, "string"));
@@ -44,9 +52,6 @@ class OpenERP {
             print "Error : ". $resp->errstr;
             return -1;
         }
-        print_r($resp->value()->me['int']);
-        //$val = $resp->value();
-        //$id = $val->scalarval();
         $this->uid = $resp->value()->me['int'];
         if ( $resp->value()->me['int'] ) {
             return $resp->value()->me['int']; //* userid of succesful login person *//
@@ -56,10 +61,12 @@ class OpenERP {
     }
 
     public function create($values, $model_name) {
-        $client = new xmlrpc_client("http://localhost:8069/xmlrpc/object");
+        $client = new xmlrpc_client($this->server."object");
+        if($this->certificate){
+        	$client->setSSLVerifyHost($this->verify_host);
+        	$client->setCaCertificate($this->certificate);
+        }
 
-
-        //   ['execute','userid','password','module.name',{values....}]
         $msg = new xmlrpcmsg('execute');
         $msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
         $msg->addParam(new xmlrpcval($this->uid, "int")); /* useid */
@@ -69,20 +76,31 @@ class OpenERP {
         $msg->addParam(new xmlrpcval($values, "struct"));/** parameters of the methods with values....  */
         $resp = $client->send($msg);
 
-        if ($resp->faultCode())
-            return -1; /* if the record is not created  */
-        else
-            return $resp->value()->scalarval();  /* return new generated id of record */
+    	if ($resp->faultCode()){
+        	echo 'KO. Error: '.$resp->faultString();
+        	return -1;  /* if the record is not writable or not existing the ids or not having permissions  */
+        }
+        else{
+        	 
+        	return ( $resp->value()->scalarval() );/* return new generated id of record */
+        } 
     }
 
     public function write($ids, $values, $model_name) {
-        $client = new xmlrpc_client("http://localhost:8069/xmlrpc/object");
-        //   ['execute','userid','password','module.name',{values....}]
-
-        $id_val = array();
-        $count = 0;
-        foreach ($ids as $id)
-            $id_val[$count++] = new xmlrpcval($id, "int");
+        $client = new xmlrpc_client($this->server."object");
+    	if($this->certificate){
+        	$client->setSSLVerifyHost($this->verify_host);
+        	$client->setCaCertificate($this->certificate);
+        }
+    	if (is_array($ids)){
+        	$id_val = array();
+        	$count = 0;
+        	foreach ($ids as $id)
+        		$id_val[$count++] = new xmlrpcval($id, "int");
+        }
+        else{
+        	$id_val = array(new xmlrpcval($ids, "int"));
+        }
 
 
 
@@ -95,22 +113,33 @@ class OpenERP {
         $msg->addParam(new xmlrpcval($id_val, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
         $msg->addParam(new xmlrpcval($values, "struct"));/** parameters of the methods with values....  */
         $resp = $client->send($msg);
-
-        if ($resp->faultCode())
-            return -1;  /* if the record is not writable or not existing the ids or not having permissions  */
-        else
-            return $resp->value()->scalarval();  /* return new generated id of record */
+        
+        if ($resp->faultCode()){
+        	echo 'KO. Error: '.$resp->faultString();
+        	return -1;  /* if the record is not writable or not existing the ids or not having permissions  */
+        }
+        else{
+        	 
+        	return ( $resp->value()->scalarval() );/* return new generated id of record */
+        } 
     }
 
     public function read($ids, $fields, $model_name) {
         $client = new xmlrpc_client($this->server."object");
-        //   ['execute','userid','password','module.name',{values....}]
         $client->return_type = 'phpvals';
-
-        $id_val = array();
-        $count = 0;
-        foreach ($ids as $id)
-            $id_val[$count++] = new xmlrpcval($id, "int");
+    	if($this->certificate){
+        	$client->setSSLVerifyHost($this->verify_host);
+        	$client->setCaCertificate($this->certificate);
+        }
+        if (is_array($ids)){
+        	$id_val = array();
+        	$count = 0;
+        	foreach ($ids as $id)
+        		$id_val[$count++] = new xmlrpcval($id, "int");
+        }
+        else{
+        	$id_val = array(new xmlrpcval($ids, "int"));
+        }
 
         $fields_val = array();
         $count = 0;
@@ -125,27 +154,37 @@ class OpenERP {
         $msg->addParam(new xmlrpcval("read", "string"));/** method which u like to execute */
         $msg->addParam(new xmlrpcval($id_val, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
         $msg->addParam(new xmlrpcval($fields_val, "array"));/** parameters of the methods with values....  */
-//        print_r($msg);
         $resp = $client->send($msg);
 
-//        print_r($resp);
 
-        if ($resp->faultCode())
+    	if ($resp->faultCode()){
+    		echo 'KO. Error: '.$resp->faultString();
             return -1;  /* if the record is not writable or not existing the ids or not having permissions  */
-        else
+    	}
+        else{
+           
             return ( $resp->value() );
+        }
     }
 
     public function unlink($ids , $model_name) {
         
-        $client = new xmlrpc_client("http://localhost:8069/xmlrpc/object");
-      
+       $client = new xmlrpc_client($this->server."object");
+       if($this->certificate){
+       	$client->setSSLVerifyHost($this->verify_host);
+       	$client->setCaCertificate($this->certificate);
+       }
         $client->return_type = 'phpvals';
 
-        $id_val = array();
-        $count = 0;
-        foreach ($ids as $id)
-            $id_val[$count++] = new xmlrpcval($id, "int");
+    	if (is_array($ids)){
+        	$id_val = array();
+        	$count = 0;
+        	foreach ($ids as $id)
+        		$id_val[$count++] = new xmlrpcval($id, "int");
+        }
+        else{
+        	$id_val = array(new xmlrpcval($ids, "int"));
+        }
 
         $msg = new xmlrpcmsg('execute');
         $msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
@@ -157,11 +196,61 @@ class OpenERP {
 //        $msg->addParam(new xmlrpcval($fields_val, "array"));/** parameters of the methods with values....  */
         $resp = $client->send($msg);
 
-        if ($resp->faultCode())
+    	if ($resp->faultCode()){
+    		echo 'KO. Error: '.$resp->faultString();
             return -1;  /* if the record is not writable or not existing the ids or not having permissions  */
-        else
-            print_r( $resp->value() );
-            //return ( $resp->value() );
+    	}
+        else{
+           
+            return ( $resp->value() );
+        }
+    }
+    
+    /**
+     * $client = xml-rpc handler
+     * $model_name = name of the relation ex: res.partner
+     * $attribute = name of the attribute ex:code
+     * $operator = search term operator ex: ilike, =, !=
+     * $key=search for
+     */
+    
+    function search($model_name,$attribute=FALSE,$operator=FALSE,$key=array()) {
+    	
+    	$client = new xmlrpc_client($this->server."object");
+    	$client->return_type = 'phpvals';
+    	if($this->certificate){
+    		$client->setSSLVerifyHost($this->verify_host);
+    		$client->setCaCertificate($this->certificate);
+    	}
+    	if ($attribute){
+	    	$key = array(
+	    			new xmlrpcval(
+	    					array(
+	    						new xmlrpcval($attribute , "string"),
+	    						new xmlrpcval($operator,"string"),
+	    						new xmlrpcval($key,"string")
+	    					),"array"
+	    			),
+	    	);
+    	}
+    	
+    	$msg = new xmlrpcmsg('execute');
+    	$msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
+    	$msg->addParam(new xmlrpcval($this->uid, "int")); /* useid */
+    	$msg->addParam(new xmlrpcval($this->passwrod, "string"));/** password */
+    	$msg->addParam(new xmlrpcval($model_name, "string"));/** model name where operation will held * */
+    	$msg->addParam(new xmlrpcval("search", "string"));
+    	$msg->addParam(new xmlrpcval($key, "array"));
+    
+    	$resp = $client->send($msg);
+    	if ($resp->faultCode()){
+    		echo 'KO. Error: '.$resp->faultString();
+            return -1;  /* if the record is not writable or not existing the ids or not having permissions  */
+    	}
+        else{
+           
+            return ( $resp->value() );
+        }
     }
 
 }

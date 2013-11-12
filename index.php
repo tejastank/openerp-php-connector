@@ -1,8 +1,9 @@
 <?php
 include_once('openerp.class.php');
 
-print "<pre/>\nOpenERP PHP connector : It support version 5 and 6.0<br/>\n Author : Tejas Tank, Tejas.tank.mca@gmail.com\n";
+print "<pre/>\nOpenERP PHP connector : It support version 5, 6.0 and 7<br/>\n Author : Tejas Tank, Tejas.tank.mca@gmail.com\n";
 print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n";
+
 
 $rpc = new OpenERP();
 
