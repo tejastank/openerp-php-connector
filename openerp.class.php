@@ -12,7 +12,8 @@
  * OpenERP XML-RPC connections methods are db, common, object , report , wizard
  *
  *
- *
+ * @Author  :   Shabeer M
+ * @Email   :   msg2shabeer@gmail.com
  *
  */
 session_start();
@@ -44,9 +45,6 @@ class OpenERP {
             print "Error : ". $resp->errstr;
             return -1;
         }
-        print_r($resp->value()->me['int']);
-        //$val = $resp->value();
-        //$id = $val->scalarval();
         $this->uid = $resp->value()->me['int'];
         if ( $resp->value()->me['int'] ) {
             return $resp->value()->me['int']; //* userid of succesful login person *//
@@ -163,6 +161,29 @@ class OpenERP {
             print_r( $resp->value() );
             //return ( $resp->value() );
     }
+    
+    public function search($whichField, $compare, $whatData, $model_name) {
+        $client = new xmlrpc_client($this->server."object");
+        $client->return_type = 'phpvals';
+        $key = array(new xmlrpcval
+            (array(new xmlrpcval($whichField , "string"), // field name
+                   new xmlrpcval($compare,"string"), // operator
+                   new xmlrpcval($whatData,"string")),"array"             ),
+        );
+        $msg = new xmlrpcmsg('execute');
+        $msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
+        $msg->addParam(new xmlrpcval($this->uid, "int")); /* useid */
+        $msg->addParam(new xmlrpcval($this->passwrod, "string"));/** password */
+        $msg->addParam(new xmlrpcval($model_name, "string"));/** model name where operation will held * */
+        $msg->addParam(new xmlrpcval("search", "string"));
+        $msg->addParam(new xmlrpcval($key, "array"));
+        $resp = $client->send($msg);
+        if ($resp->faultCode())
+            return -1;  /* if the record is not writable or not existing the ids or not having permissions  */
+        else
+            return ( $resp->value() ); // return search result ids
+    }
+    
 
 }
 
