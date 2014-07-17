@@ -24,7 +24,7 @@ print_r($partners);
 
 Contact us for support
 ======================
-website: http://www.snippetbucket.com/
+http://www.snippetbucket.com/
 
 
 
