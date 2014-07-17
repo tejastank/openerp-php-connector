@@ -13,10 +13,12 @@ Example
 $instance = new OpenERP();
 
 $x = $instance->login("demo", "demo", "demo", "http://demo.snippetbucket.com/xmlrpc/");
-$fields = array('id','name','model');
-$ids = range(1,2);
-$partners = $instance->read($ids, $fields, "res.partner");
 
+$fields = array('id','name','model');
+
+$ids = range(1,2);
+
+$partners = $instance->read($ids, $fields, "res.partner");
 
 print_r($partners);
 
