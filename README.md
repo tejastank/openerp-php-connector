@@ -4,6 +4,8 @@ openerp-php-connector
 XMLRPC Connecotor communicate with OpenERP Server 6 and 7 version both.
 One of tested and well worked PHP Connector. AGPL V3
 
+License: AGPL V3, No exception, by using this lib, you can keep private your code/modules.
+
 
 Example
 =======
@@ -18,6 +20,9 @@ $partners = $instance->read($ids, $fields, "res.partner");
 
 print_r($partners);
 
+Contact us for support
+======================
+website: http://www.snippetbucket.com/
 
 
 
