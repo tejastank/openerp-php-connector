@@ -131,13 +131,11 @@ class OpenERP {
         $client->return_type = 'phpvals';
         //   ['execute','userid','password','module.name',{values....}]
 
-        $id_val = array();
-        $count = 0;
-        foreach ($ids as $id)
-            $id_val[$count++] = new xmlrpcval($id, "int");
-        $nval = array();
-        foreach($values as $k=>$v){
-            $nval[$k] = new xmlrpcval( $v, xmlrpc_get_type($v) );
+        $this->convertIds($ids);
+        
+        
+        foreach($values as &$v){
+            $v = new xmlrpcval( $v, xmlrpc_get_type($v) );
         }
 
         $msg = new xmlrpcmsg('execute');
@@ -146,14 +144,15 @@ class OpenERP {
         $msg->addParam(new xmlrpcval($this->password, "string"));/** password */
         $msg->addParam(new xmlrpcval($model_name, "string"));/** model name where operation will held * */
         $msg->addParam(new xmlrpcval("write", "string"));/** method which u like to execute */
-        $msg->addParam(new xmlrpcval($id_val, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
-        $msg->addParam(new xmlrpcval($nval, "struct"));/** parameters of the methods with values....  */
+        $msg->addParam(new xmlrpcval($ids, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
+        $msg->addParam(new xmlrpcval($values, "struct"));/** parameters of the methods with values....  */
         $resp = $client->send($msg);
         
-        if ($resp->faultCode())
-            return -1;  /* if the record is not writable or not existing the ids or not having permissions  */
-        else
-            return $resp->value();  /* return new generated id of record */
+        if ($resp->faultCode()){
+        	throw new Exception('Unable to update object'); //no data in $resp->errstr
+        }
+        
+        return true; 
     }
 
     public function read($ids, $fields, $model_name, $context=array() ) {
@@ -161,24 +160,20 @@ class OpenERP {
         //   ['execute','userid','password','module.name',{values....}]
         $client->return_type = 'phpvals';
 
-        $id_val = array();
-        $count = 0;
-        foreach ($ids as $id)
-            $id_val[$count++] = new xmlrpcval($id, "int");
-
-        $fields_val = array();
-        $count = 0;
-        foreach ($fields as $field)
-            $fields_val[$count++] = new xmlrpcval($field, "string");
-
+		$this->convertIds($ids);
+        
+        foreach($fields as &$field){
+        	$field = new xmlrpcval( $field, "string" );
+        }
+        
         $msg = new xmlrpcmsg('execute');
         $msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
         $msg->addParam(new xmlrpcval($this->uid, "int")); /* useid */
         $msg->addParam(new xmlrpcval($this->password, "string"));/** password */
         $msg->addParam(new xmlrpcval($model_name, "string"));/** model name where operation will held * */
         $msg->addParam(new xmlrpcval("read", "string"));/** method which u like to execute */
-        $msg->addParam(new xmlrpcval($id_val, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
-        $msg->addParam(new xmlrpcval($fields_val, "array"));/** parameters of the methods with values....  */
+        $msg->addParam(new xmlrpcval($ids, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
+        $msg->addParam(new xmlrpcval($fields, "array"));/** parameters of the methods with values....  */
 #        $ctx = array();
 #        foreach($context as $k=>$v){
 #            $ctx[$k] = new xmlrpcval( xmlrpc_get_type($v) );
@@ -201,10 +196,7 @@ class OpenERP {
       
         $client->return_type = 'phpvals';
 
-        $id_val = array();
-        $count = 0;
-        foreach ($ids as $id)
-            $id_val[$count++] = new xmlrpcval($id, "int");
+		$this->convertIds($ids);
 
         $msg = new xmlrpcmsg('execute');
         $msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
@@ -212,7 +204,7 @@ class OpenERP {
         $msg->addParam(new xmlrpcval($this->password, "string"));/** password */
         $msg->addParam(new xmlrpcval($model_name, "string"));/** model name where operation will held * */
         $msg->addParam(new xmlrpcval("unlink", "string"));/** method which u like to execute */
-        $msg->addParam(new xmlrpcval($id_val, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
+        $msg->addParam(new xmlrpcval($ids, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
 //        $msg->addParam(new xmlrpcval($fields_val, "array"));/** parameters of the methods with values....  */
         $resp = $client->send($msg);
 
@@ -229,10 +221,7 @@ class OpenERP {
         //   ['execute','userid','password','module.name',{values....}]
         $client->return_type = 'phpvals';
 
-        $id_val = array();
-        $count = 0;
-        foreach ($ids as $id)
-            $id_val[$count++] = new xmlrpcval($id, "int");
+        $this->convertIds($ids);
 
         $msg = new xmlrpcmsg('execute');
         $msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
@@ -240,7 +229,7 @@ class OpenERP {
         $msg->addParam(new xmlrpcval($this->password, "string"));/** password */
         $msg->addParam(new xmlrpcval('product.pricelist', "string"));/** model name where operation will held * */
         $msg->addParam(new xmlrpcval("price_get", "string"));/** method which u like to execute */
-        $msg->addParam(new xmlrpcval($id_val, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
+        $msg->addParam(new xmlrpcval($ids, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
         $msg->addParam(new xmlrpcval($product_id, "int"));
         $msg->addParam(new xmlrpcval($qty, xmlrpc_get_type($qty)  ));
         $msg->addParam(new xmlrpcval($partner_id, "int"));
@@ -290,5 +279,12 @@ class OpenERP {
             return -1;  /* if the record is not writable or not existing the ids or not having permissions  */
         else
             return $resp->value();
+    }
+    
+    protected function convertIds(&$ids){
+    	foreach ($ids as &$id){
+    		$id = new xmlrpcval($id, "int");
+    	}
+    	return true;
     }
 }
