@@ -15,23 +15,23 @@
  *
  *
  */
-session_start();
 
 include("xmlrpc-2.2.2/lib/xmlrpc.inc");
 
 class OpenERP {
 
     public $server = "http://localhost:8069/xmlrpc/";
-    public $database = "";
+    public $database = "test";
+    public $username = "admin"; /*     * * @userid = general name of user which require to login at openerp server */
+    public $password = "a";/** @password = password require to login at openerp server * */
     public $uid = "";/**  @uid = once user succesful login then this will asign the user id */
-    public $username = ""; /*     * * @userid = general name of user which require to login at openerp server */
-    public $password = "";/** @password = password require to login at openerp server * */
 
-    public function login($username = "admin", $password="a", $database="test", $server="http://localhost:8069/xmlrpc/") {
-        $this->server = $server;
-        $this->database = $database;
-        $this->username = $username;
-        $this->password = $password;
+    public function login($username, $password, $database, $server) {
+
+        if ($server) $this->server = $server;
+        if ($database) $this->database = $database;
+        if ($username) $this->username = $username;
+        if ($password) $this->password = $password;
 
         $sock = new xmlrpc_client($this->server . 'common');
         $msg = new xmlrpcmsg('login');
@@ -41,17 +41,17 @@ class OpenERP {
 
         $resp = $sock->send($msg);
         if($resp->errno > 0 ){
-            //print "Error : ". $resp->errstr;
-            return -1;
+            throw new Exception($resp->errstr);
         }
+
         //$val = $resp->value();
         //$id = $val->scalarval();
         $this->uid = $resp->value()->me['int'];
-        if ( $resp->value()->me['int'] ) {
-            return $resp->value()->me['int']; //* userid of succesful login person *//
-        } else {
-            return -1; //** if userid not exists , username or password wrong.. */
+        if ( !$this->uid ) {
+            throw new Exception( 'Unable to login' );
         }
+
+        return $this->uid; //* userid of succesful login person *//
     }
 
     public function search($values, $model_name,$offset=0,$max=40, $order="id DESC") {
@@ -87,47 +87,16 @@ class OpenERP {
         
         $resp = $client->send($msg);
         
-        if ($resp->faultCode())
-            return -1; /* if the record is not created  */
-        else
-            return $resp->value();  /* return new generated id of record */
+        if ($resp->faultCode()){
+        	throw new Exception($resp->errstr);
+        }
+
+        return $resp->value();  /* return new generated id of record */
     }
 
     public function searchread($values, $model_name, $fields=array(), $offset=0, $max=10, $order = "id DESC", $context=array()) {
-        $domains = array();
-        $client = new xmlrpc_client($this->server."object");
-        $client->return_type = 'phpvals';
-
-        $msg = new xmlrpcmsg('execute');
-        $msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
-        $msg->addParam(new xmlrpcval($this->uid, "int")); /* useid */
-        $msg->addParam(new xmlrpcval($this->password, "string"));/** password */
-        $msg->addParam(new xmlrpcval($model_name, "string"));/** model name where operation will held * */
-        $msg->addParam(new xmlrpcval("search", "string"));/** method which u like to execute */
-
-        foreach($values as $x){
-            if(!empty($x)){
-                    array_push( $domains,  new xmlrpcval( 
-                                                        array(  new xmlrpcval($x[0], "string" ),
-                                                                 new xmlrpcval( $x[1],"string" ),
-                                                                 new xmlrpcval( $x[2], xmlrpc_get_type($x[2]) )
-                                                              ),
-                                                              "array"
-                                                       )
-                             );
-            }
-        }
-        $msg->addParam(new xmlrpcval($domains, "array")); /* SEARCH DOMAIN */
-        $msg->addParam(new xmlrpcval($offset, "int")); /* OFFSET, START FROM */
-        $msg->addParam(new xmlrpcval($max, "int")); /* MAX RECORD LIMITS */
-        $msg->addParam(new xmlrpcval($order, "string"));
-        
-        $resp = $client->send($msg);
-
-        if ($resp->faultCode())
-            return -1; /* if the record is not created  */
-        else
-            return $this->read($resp->value(), $fields, $model_name, $context);  /* return new generated id of record */
+		$res = $this->search($values, $model_name, $offset, $max, $order);
+		return $this->read($res, $fields, $model_name, $context);  /* return new generated id of record */
     }
 
 
@@ -140,7 +109,7 @@ class OpenERP {
         foreach($values as $k=>$v){
             $nval[$k] = new xmlrpcval( $v, xmlrpc_get_type($v) );
         }
-         
+       
         $msg = new xmlrpcmsg('execute');
         $msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
         $msg->addParam(new xmlrpcval($this->uid, "int")); /* useid */
@@ -162,13 +131,11 @@ class OpenERP {
         $client->return_type = 'phpvals';
         //   ['execute','userid','password','module.name',{values....}]
 
-        $id_val = array();
-        $count = 0;
-        foreach ($ids as $id)
-            $id_val[$count++] = new xmlrpcval($id, "int");
-        $nval = array();
-        foreach($values as $k=>$v){
-            $nval[$k] = new xmlrpcval( $v, xmlrpc_get_type($v) );
+        $this->convertIds($ids);
+        
+        
+        foreach($values as &$v){
+            $v = new xmlrpcval( $v, xmlrpc_get_type($v) );
         }
 
         $msg = new xmlrpcmsg('execute');
@@ -177,14 +144,15 @@ class OpenERP {
         $msg->addParam(new xmlrpcval($this->password, "string"));/** password */
         $msg->addParam(new xmlrpcval($model_name, "string"));/** model name where operation will held * */
         $msg->addParam(new xmlrpcval("write", "string"));/** method which u like to execute */
-        $msg->addParam(new xmlrpcval($id_val, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
-        $msg->addParam(new xmlrpcval($nval, "struct"));/** parameters of the methods with values....  */
+        $msg->addParam(new xmlrpcval($ids, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
+        $msg->addParam(new xmlrpcval($values, "struct"));/** parameters of the methods with values....  */
         $resp = $client->send($msg);
         
-        if ($resp->faultCode())
-            return -1;  /* if the record is not writable or not existing the ids or not having permissions  */
-        else
-            return $resp->value();  /* return new generated id of record */
+        if ($resp->faultCode()){
+        	throw new Exception('Unable to update object'); //no data in $resp->errstr
+        }
+        
+        return true; 
     }
 
     public function read($ids, $fields, $model_name, $context=array() ) {
@@ -192,24 +160,20 @@ class OpenERP {
         //   ['execute','userid','password','module.name',{values....}]
         $client->return_type = 'phpvals';
 
-        $id_val = array();
-        $count = 0;
-        foreach ($ids as $id)
-            $id_val[$count++] = new xmlrpcval($id, "int");
-
-        $fields_val = array();
-        $count = 0;
-        foreach ($fields as $field)
-            $fields_val[$count++] = new xmlrpcval($field, "string");
-
+		$this->convertIds($ids);
+        
+        foreach($fields as &$field){
+        	$field = new xmlrpcval( $field, "string" );
+        }
+        
         $msg = new xmlrpcmsg('execute');
         $msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
         $msg->addParam(new xmlrpcval($this->uid, "int")); /* useid */
         $msg->addParam(new xmlrpcval($this->password, "string"));/** password */
         $msg->addParam(new xmlrpcval($model_name, "string"));/** model name where operation will held * */
         $msg->addParam(new xmlrpcval("read", "string"));/** method which u like to execute */
-        $msg->addParam(new xmlrpcval($id_val, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
-        $msg->addParam(new xmlrpcval($fields_val, "array"));/** parameters of the methods with values....  */
+        $msg->addParam(new xmlrpcval($ids, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
+        $msg->addParam(new xmlrpcval($fields, "array"));/** parameters of the methods with values....  */
 #        $ctx = array();
 #        foreach($context as $k=>$v){
 #            $ctx[$k] = new xmlrpcval( xmlrpc_get_type($v) );
@@ -232,10 +196,7 @@ class OpenERP {
       
         $client->return_type = 'phpvals';
 
-        $id_val = array();
-        $count = 0;
-        foreach ($ids as $id)
-            $id_val[$count++] = new xmlrpcval($id, "int");
+		$this->convertIds($ids);
 
         $msg = new xmlrpcmsg('execute');
         $msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
@@ -243,7 +204,7 @@ class OpenERP {
         $msg->addParam(new xmlrpcval($this->password, "string"));/** password */
         $msg->addParam(new xmlrpcval($model_name, "string"));/** model name where operation will held * */
         $msg->addParam(new xmlrpcval("unlink", "string"));/** method which u like to execute */
-        $msg->addParam(new xmlrpcval($id_val, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
+        $msg->addParam(new xmlrpcval($ids, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
 //        $msg->addParam(new xmlrpcval($fields_val, "array"));/** parameters of the methods with values....  */
         $resp = $client->send($msg);
 
@@ -260,10 +221,7 @@ class OpenERP {
         //   ['execute','userid','password','module.name',{values....}]
         $client->return_type = 'phpvals';
 
-        $id_val = array();
-        $count = 0;
-        foreach ($ids as $id)
-            $id_val[$count++] = new xmlrpcval($id, "int");
+        $this->convertIds($ids);
 
         $msg = new xmlrpcmsg('execute');
         $msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
@@ -271,7 +229,7 @@ class OpenERP {
         $msg->addParam(new xmlrpcval($this->password, "string"));/** password */
         $msg->addParam(new xmlrpcval('product.pricelist', "string"));/** model name where operation will held * */
         $msg->addParam(new xmlrpcval("price_get", "string"));/** method which u like to execute */
-        $msg->addParam(new xmlrpcval($id_val, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
+        $msg->addParam(new xmlrpcval($ids, "array"));/** ids of record which to be updting..   this array must be xmlrpcval array */
         $msg->addParam(new xmlrpcval($product_id, "int"));
         $msg->addParam(new xmlrpcval($qty, xmlrpc_get_type($qty)  ));
         $msg->addParam(new xmlrpcval($partner_id, "int"));
@@ -322,6 +280,11 @@ class OpenERP {
         else
             return $resp->value();
     }
+    
+    protected function convertIds(&$ids){
+    	foreach ($ids as &$id){
+    		$id = new xmlrpcval($id, "int");
+    	}
+    	return true;
+    }
 }
-
-?>
