@@ -15,7 +15,6 @@
  *
  *
  */
-session_start();
 
 include("xmlrpc-2.2.2/lib/xmlrpc.inc");
 
