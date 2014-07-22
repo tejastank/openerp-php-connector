@@ -87,47 +87,16 @@ class OpenERP {
         
         $resp = $client->send($msg);
         
-        if ($resp->faultCode())
-            return -1; /* if the record is not created  */
-        else
-            return $resp->value();  /* return new generated id of record */
+        if ($resp->faultCode()){
+        	throw new Exception($resp->errstr);
+        }
+
+        return $resp->value();  /* return new generated id of record */
     }
 
     public function searchread($values, $model_name, $fields=array(), $offset=0, $max=10, $order = "id DESC", $context=array()) {
-        $domains = array();
-        $client = new xmlrpc_client($this->server."object");
-        $client->return_type = 'phpvals';
-
-        $msg = new xmlrpcmsg('execute');
-        $msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
-        $msg->addParam(new xmlrpcval($this->uid, "int")); /* useid */
-        $msg->addParam(new xmlrpcval($this->password, "string"));/** password */
-        $msg->addParam(new xmlrpcval($model_name, "string"));/** model name where operation will held * */
-        $msg->addParam(new xmlrpcval("search", "string"));/** method which u like to execute */
-
-        foreach($values as $x){
-            if(!empty($x)){
-                    array_push( $domains,  new xmlrpcval( 
-                                                        array(  new xmlrpcval($x[0], "string" ),
-                                                                 new xmlrpcval( $x[1],"string" ),
-                                                                 new xmlrpcval( $x[2], xmlrpc_get_type($x[2]) )
-                                                              ),
-                                                              "array"
-                                                       )
-                             );
-            }
-        }
-        $msg->addParam(new xmlrpcval($domains, "array")); /* SEARCH DOMAIN */
-        $msg->addParam(new xmlrpcval($offset, "int")); /* OFFSET, START FROM */
-        $msg->addParam(new xmlrpcval($max, "int")); /* MAX RECORD LIMITS */
-        $msg->addParam(new xmlrpcval($order, "string"));
-        
-        $resp = $client->send($msg);
-
-        if ($resp->faultCode())
-            return -1; /* if the record is not created  */
-        else
-            return $this->read($resp->value(), $fields, $model_name, $context);  /* return new generated id of record */
+		$res = $this->search($values, $model_name, $offset, $max, $order);
+		return $this->read($res, $fields, $model_name, $context);  /* return new generated id of record */
     }
 
 
@@ -140,7 +109,7 @@ class OpenERP {
         foreach($values as $k=>$v){
             $nval[$k] = new xmlrpcval( $v, xmlrpc_get_type($v) );
         }
-         
+       
         $msg = new xmlrpcmsg('execute');
         $msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
         $msg->addParam(new xmlrpcval($this->uid, "int")); /* useid */
