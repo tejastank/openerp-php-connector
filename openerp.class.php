@@ -22,16 +22,17 @@ include("xmlrpc-2.2.2/lib/xmlrpc.inc");
 class OpenERP {
 
     public $server = "http://localhost:8069/xmlrpc/";
-    public $database = "";
+    public $database = "test";
+    public $username = "admin"; /*     * * @userid = general name of user which require to login at openerp server */
+    public $password = "a";/** @password = password require to login at openerp server * */
     public $uid = "";/**  @uid = once user succesful login then this will asign the user id */
-    public $username = ""; /*     * * @userid = general name of user which require to login at openerp server */
-    public $password = "";/** @password = password require to login at openerp server * */
 
-    public function login($username = "admin", $password="a", $database="test", $server="http://localhost:8069/xmlrpc/") {
-        $this->server = $server;
-        $this->database = $database;
-        $this->username = $username;
-        $this->password = $password;
+    public function login($username, $password, $database, $server) {
+
+        if ($server) $this->server = $server;
+        if ($database) $this->database = $database;
+        if ($username) $this->username = $username;
+        if ($password) $this->password = $password;
 
         $sock = new xmlrpc_client($this->server . 'common');
         $msg = new xmlrpcmsg('login');
@@ -41,17 +42,17 @@ class OpenERP {
 
         $resp = $sock->send($msg);
         if($resp->errno > 0 ){
-            //print "Error : ". $resp->errstr;
-            return -1;
+            throw new Exception($resp->errstr);
         }
+
         //$val = $resp->value();
         //$id = $val->scalarval();
         $this->uid = $resp->value()->me['int'];
-        if ( $resp->value()->me['int'] ) {
-            return $resp->value()->me['int']; //* userid of succesful login person *//
-        } else {
-            return -1; //** if userid not exists , username or password wrong.. */
+        if ( !$this->uid ) {
+            throw new Exception( 'Unable to login' );
         }
+
+        return $this->uid; //* userid of succesful login person *//
     }
 
     public function search($values, $model_name,$offset=0,$max=40, $order="id DESC") {
@@ -323,5 +324,3 @@ class OpenERP {
             return $resp->value();
     }
 }
-
-?>
