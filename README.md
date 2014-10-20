@@ -28,7 +28,9 @@ print_r($partners);
 example to use workflow,
 
 $x = $rpc->login(....);
+
 if($x){
+
      $rpc->workflow('sale.order', 'order_confirm',  $sale_order_id);
      $rpc->workflow('sale.order', 'manual_invoice',  $sale_order_id);
      .....
