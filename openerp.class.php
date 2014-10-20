@@ -322,6 +322,56 @@ class OpenERP {
         else
             return $resp->value();
     }
+    
+    public function button_click($model, $method_name, $record_ids){
+        $client = new xmlrpc_client($this->server."object");
+        $client->setSSLVerifyPeer(0);
+        $client->return_type = 'phpvals';
+        //   ['execute','userid','password','module.name',{values....}]
+        $nval = array();
+        foreach($values as $k=>$v){
+            $nval[$k] = new xmlrpcval( $v, xmlrpc_get_type($v) );
+        }
+        
+        $msg = new xmlrpcmsg('execute');
+        $msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
+        $msg->addParam(new xmlrpcval($this->uid, "int")); /* useid */
+        $msg->addParam(new xmlrpcval($this->password, "string"));/** password */
+        $msg->addParam(new xmlrpcval($model, "string"));/** model name where operation will held * */
+        $msg->addParam(new xmlrpcval($method, "string"));/** method which u like to execute */
+        $msg->addParam(new xmlrpcval($record_id, "array"));/** parameters of the methods with values....  */
+        
+        $resp = $client->send($msg);
+        print_r($resp);
+        
+        if ($resp->faultCode())
+            return -1; /* if the record is not created  */
+        else
+            return $resp->value();  /* return new generated id of record */
+    }
+    
+    public function workflow($model, $method, $record_id) {
+
+        $client = new xmlrpc_client($this->server."object");
+        $client->setSSLVerifyPeer(0);
+        $client->return_type = 'phpvals';
+        //   ['execute','userid','password','module.name',{values....}]
+        
+        
+        $msg = new xmlrpcmsg('exec_workflow');
+        $msg->addParam(new xmlrpcval($this->database, "string"));  //* database name */
+        $msg->addParam(new xmlrpcval($this->uid, "int")); /* useid */
+        $msg->addParam(new xmlrpcval($this->password, "string"));/** password */
+        $msg->addParam(new xmlrpcval($model, "string"));/** model name where operation will held * */
+        $msg->addParam(new xmlrpcval($method, "string"));/** method which u like to execute */
+        $msg->addParam(new xmlrpcval($record_id, "int"));/** parameters of the methods with values....  */
+        
+        $resp = $client->send($msg);
+        if ($resp->faultCode())
+            return -1; /* if the record is not created  */
+        else
+            return $resp->value();  /* return new generated id of record */
+    }
 }
 
 ?>
