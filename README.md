@@ -22,6 +22,25 @@ $partners = $instance->read($ids, $fields, "res.partner");
 
 print_r($partners);
 
+
+# Below example to execute workflow.
+====================================
+example to use workflow,
+
+$x = $rpc->login(....);
+
+if($x){
+     $rpc->workflow('sale.order', 'order_confirm',  $sale_order_id);
+     $rpc->workflow('sale.order', 'manual_invoice',  $sale_order_id);
+     .....
+     // this way can execute any workflow or workflow signals...
+}
+
+// Similar button_click method also added.
+
+
+Visit : www.SnippetBucket.com
+
 Contact us for support
 ======================
 http://www.snippetbucket.com/
