@@ -1,13 +1,21 @@
 openerp-php-connector
 =====================
 
-XMLRPC Connecotor communicate with OpenERP Server 6 and 7 version both.
+XMLRPC Connecotor communicate with OpenERP Server 6 and 7, 8.0 version too.
 One of tested and well worked PHP Connector. AGPL V3
 
 License: AGPL V3, No exception, by using this lib, you can keep private your code/modules.
 
+Powered By SnippetBucket.com
+============================
+Tejas Tank.
 
-Example
+Email: snippetbucket@gmail.com or tejas.tank.mca@gmail.com
+
+website: http://www.snippetbucket.com/
+
+
+Example Code
 =======
 
 $instance = new OpenERP();
@@ -47,12 +55,6 @@ http://www.snippetbucket.com/
 
 
 
-Powered By SnippetBucket.com
-============================
-Tejas Tank.
 
-Email: tejas.tank.mca@gmail.com
-
-website: http://www.snippetbucket.com/
 
 
