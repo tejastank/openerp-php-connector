@@ -4,7 +4,7 @@ OpenERP/ODOO-PHP-Connector
 XMLRPC Connecotor communicate with OpenERP Server 6 and 7, 8.0 version too.
 One of tested and well worked PHP Connector. AGPL V3
 
-We had been successful delived many mobile apps, eCommerce apps and many other business apps, by using this simplest, powerful connector.
+We had been successful delived many mobile apps, eCommerce apps and many other business apps, by using this simplest, powerful connector. Its works with SSL enabled OpenERP/Odoo Instance.
 
 License: AGPL V3, No exception, by using this lib, you can keep private your code/modules.
 
