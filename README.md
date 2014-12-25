@@ -1,6 +1,8 @@
 OpenERP/ODOO-PHP-Connector 
 =========================
 
+MOST POPULAR & EASY ODOO/OpenERP PHP CONNECTOR
+
 [Its support SSL enabled Odoo/OpenERP Instances too.]
 
 XMLRPC Connecotor communicate with OpenERP Server 6 and 7, 8.0 version too.
