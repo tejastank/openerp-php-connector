@@ -10,7 +10,7 @@ We had been successful delived many mobile apps, eCommerce apps and many other b
 
 License: AGPL V3, No exception, by using this lib, you can keep private your code/modules.
 
-Kindly contact us for integration & implmenetation, We are happy to serve you.
+Kindly contact us for integration & implementation, We are happy to serve you.
 
 Powered By SnippetBucket.com
 ============================
