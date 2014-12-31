@@ -19,8 +19,12 @@ Powered By SnippetBucket.com
 Tejas Tank.
 
 Email: snippetbucket@gmail.com or tejas.tank.mca@gmail.com
-
 website: http://www.snippetbucket.com/
+
+Contact us for support
+======================
+Skype Us: live.snippetbucket
+http://snippetbucket.com/aboutus/
 
 
 Example Code
@@ -57,10 +61,7 @@ if($x){
 
 Visit : www.SnippetBucket.com
 
-Contact us for support
-======================
-http://snippetbucket.com/aboutus/
-<a href="skype:live.snippetbucket?chat" target="_blank">Skype</a>
+
 
 
 
