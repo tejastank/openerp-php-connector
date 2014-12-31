@@ -23,7 +23,7 @@ website: http://www.snippetbucket.com/
 
 Contact us for support
 ======================
-Skype Us: live.snippetbucket
+Skype Us: live.snippetbucket or 
 http://snippetbucket.com/aboutus/
 
 
