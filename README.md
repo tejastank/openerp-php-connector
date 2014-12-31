@@ -59,7 +59,8 @@ Visit : www.SnippetBucket.com
 
 Contact us for support
 ======================
-http://www.snippetbucket.com/
+http://snippetbucket.com/aboutus/
+<a href="skype:live.snippetbucket?chat" target="_blank">Skype</a>
 
 
 
