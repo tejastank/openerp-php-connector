@@ -228,7 +228,7 @@ class OpenERP {
 
     public function unlink($ids , $model_name) {
         
-        $client = new xmlrpc_client("http://localhost:8069/xmlrpc/object");
+        $client = new xmlrpc_client($this->server."object");
       
         $client->return_type = 'phpvals';
 
