@@ -59,6 +59,11 @@ if($x){
 // Similar button_click method also added.
 
 
+Download XMLRPC
+=============
+http://goo.gl/43OVxT
+
+
 Visit : www.SnippetBucket.com
 
 
