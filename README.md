@@ -26,6 +26,9 @@ Contact us for support
 Skype Us: live.snippetbucket or 
 http://snippetbucket.com/aboutus/
 
+Company or Developers
+=======
+Create own UI and Module Integrated thing with this library & you get own tradmarked front-end brand.
 
 Example Code
 =======
