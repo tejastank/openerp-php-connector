@@ -17,7 +17,10 @@
  */
 session_start();
 
-include("xmlrpc-2.2.2/lib/xmlrpc.inc");
+$autoload = __DIR__ . "/vendor/autoload.php";
+if (file_exists($autoload)) {
+	require_once($autoload);
+}
 
 class OpenERP {
 

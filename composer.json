@@ -1,0 +1,10 @@
+{
+	"name": "tejastank/openerp-php-connector",
+	"require": {
+		"phpxmlrpc/phpxmlrpc": "4.0.x",
+		"ext-xmlrpc": "*"
+	},
+	"autoload": {
+		"psr-0": { "OpenERP": "" }
+	}
+}
