@@ -18,6 +18,7 @@
 session_start();
 
 include("xmlrpc-2.2.2/lib/xmlrpc.inc");
+$GLOBALS['xmlrpc_internalencoding']='UTF-8';
 
 class OpenERP {
 
